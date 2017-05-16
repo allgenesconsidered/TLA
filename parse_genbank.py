@@ -2,7 +2,7 @@
 
 # Written by Michael Olvera 2017
 # parse_genbank.py takes in a SNP file from NCBI and a genbank file from NCBI and
-# joins the two, allowing the new ganbank file to be laded into SnapGene with SNP
+# joins the two, allowing the new ganbank file to be loaded into SnapGene with SNP
 # locations annotated. 
 #
 # ./parse_genbank.py GENE_SEQUENCE.gp SNP_LIST.xml -o output_file
@@ -29,7 +29,9 @@ def getChrStartStop(genbank_object):
 	ACCESSION   NC_000010 REGION: 119648701..119680164 GPC_000001302
 
 	Where '119648701..119680164' is the chromosomal position of the genbank. This function should
-	reliably extract that file.
+	reliably extract that infomation.
+
+	TODO: Add an option if the information is not there. 
 	"""
 	accession = genbank_object.annotations["accessions"]
 	non_decimal = re.compile(r'[^\d.]+')
@@ -57,7 +59,7 @@ def addSNPFeatures(genbank, snp_list):
 	Function to add SNP lists to the genbank file. The only qualifier sofar is the 'name', which
 	merges the SNP name with the MAF for visibility on SnapGene.
 
-	There is an unfortunate bug in SnapGene where 1bp long features are automatically converted to
+	There is an unfortunate bug in SnapGene where '1bp long' features are automatically converted to
 	2 base pairs. I will contact Snapgene to try to get the issue resolved, although know that
 	the frount of the feature is its location.
 	"""
@@ -125,7 +127,7 @@ def checkAssembly(genbank, xml):
             are manually curated by GRC staff. For more information see:
             http://genomereference.org.
 
-    Wherease for the XML is in the VariationData/MetaData/AssemblyName node:
+    Wherease for the XML file is in the VariationData/MetaData/AssemblyName node:
 
   <VariationData>
   	<Metadata>
