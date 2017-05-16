@@ -149,7 +149,7 @@ def handleArgs():
                     help='A genbank file (.gb).')
 	parser.add_argument('snps_input',  type=str,
                     help='A list of SNPs in XML format.')
-	parser.add_argument('-o','--output', type=str,
+	parser.add_argument('output', type=str,
                     help='File name to output, without the .gb.')
 	return parser.parse_args()
 

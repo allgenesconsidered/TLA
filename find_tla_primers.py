@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 from Bio import SeqIO
+from Bio.SeqFeature import FeatureLocation, SeqFeature, ExactPosition
 import primer3
+import argparse
 
 
 class SingleNucleotidePolymorphism(object):
@@ -88,7 +90,7 @@ def asignSNPS(list_of_fragmets, list_of_snps):
 				break
 	return list_of_fragmets
 
-def subsetTLA(list_of_fragments, min_length=180, max_length=1000, min_snps=1,
+def subsetTLA(list_of_fragments, min_length=180, max_length=1000, min_snps=0,
  min_gc=30, max_gc=70, flank_size=50):
 	"""
 	With SNP information added, subset a list of TLA fragments by cutoffs desirable for
@@ -104,14 +106,19 @@ def subsetTLA(list_of_fragments, min_length=180, max_length=1000, min_snps=1,
 	for frag in list_of_fragments:
 		if min_length <= len(frag) <= max_length and len(frag.snps) >= min_snps \
 		and min_gc <= frag.gc <= max_gc:
-			for snp in frag.snps:
-				if frag.start <= snp.loc <= (frag.start + flank_size) \
-				or (frag.end - flank_size) <= snp.loc <= frag.end:
-					filtered_fragments.append(frag)
+			if min_snps == 0:
+				filtered_fragments.append(frag)
+			else:
+				for snp in frag.snps:
+					if frag.start <= snp.loc <= (frag.start + flank_size) \
+					or (frag.end - flank_size) <= snp.loc <= frag.end:
+						filtered_fragments.append(frag)
+						break
 	return filtered_fragments
 
 def addPrimers(list_of_fragments, flank_size=50):
 	# (Idealy) define primers 
+	# Not working right now, safe for later
 	for frag in list_of_fragments:
 		clipped = frag.seq[flank_size:-flank_size]
 		l = len(clipped)
@@ -136,6 +143,23 @@ def addPrimers(list_of_fragments, flank_size=50):
 	}))
 	return list_of_fragments
 
+def addTLAFeatures(genbank, fragment_list):
+	"""
+	Function to add SNP lists to the genbank file. The only qualifier sofar is the 'name', which
+	merges the SNP name with the MAF for visibility on SnapGene.
+
+	There is an unfortunate bug in SnapGene where '1bp long' features are automatically converted to
+	2 base pairs. I will contact Snapgene to try to get the issue resolved, although know that
+	the frount of the feature is its location.
+	"""
+	count = 0
+	for frag in fragment_list:
+		location = FeatureLocation(ExactPosition(frag.start),ExactPosition(frag.end))
+		tla_feature = SeqFeature(location,type='tla', id='tla', qualifiers={'label':'TLA_Region_%i'%count})
+		genbank.features.append(tla_feature)
+		count += 1
+	return genbank
+
 def handleArgs():
 	"""
 	Handles taking in command line arguments. 
@@ -143,6 +167,8 @@ def handleArgs():
 	parser = argparse.ArgumentParser(description='Identifies optimal primers for TLA.')
 	parser.add_argument('genbank', type=str,
                     help='A genbank file (.gb).')
+	parser.add_argument('output', type=str,
+                    help='File name to output, without the .gb.')
 	return parser.parse_args()
 
 def main():
@@ -163,7 +189,9 @@ def main():
 	
 	# Not working as expected. 
 	#tla_fragments = addPrimers(tla_fragments)
-
+	genome = addTLAFeatures(genome, tla_fragments)
+	with open(args.output + '.gb', 'w') as out:
+		SeqIO.write(genome, out,'genbank')
 
 if __name__ == '__main__':
 	main()
