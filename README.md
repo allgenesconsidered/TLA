@@ -4,7 +4,7 @@ Finding TLA-optimized primers
 Written by Michael Olvera 2017
 
 parse_genbank.py takes in a SNP file from NCBI and a genbank file from NCBI and
-joins the two, allowing the new ganbank file to be laded into SnapGene with SNP
+joins the two, allowing the new ganbank file to be loaded into SnapGene with SNP
 locations annotated. 
 
 
